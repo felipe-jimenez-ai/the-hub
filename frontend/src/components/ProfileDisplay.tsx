@@ -97,19 +97,26 @@ export default function ProfileDisplay({ profile, showLinkedIn = true, children 
                 </p>
               </div>
             </div>
+            {/* About */}
+            {profile.summary && (
+              <div className="mb-6">
+                <h4 className="text-sm font-bold text-gray-700 mb-2">About</h4>
+                <p className="text-sm text-gray-600 whitespace-normal break-words">{profile.summary}</p>
+              </div>
+            )}
             
-            {/* Superpower */}
+            {/* Can Help With */}
             {profile.superpower && (
               <div className="mb-6">
-                <h4 className="text-sm font-medium text-gray-700 mb-2">Superpower</h4>
+                <h4 className="text-sm font-bold text-gray-700 mb-2">Can Help With</h4>
                 <p className="text-sm text-gray-600 whitespace-normal break-words">{profile.superpower}</p>
               </div>
             )}
             
-            {/* Ask */}
+            {/* Looking For */}
             {profile.ask && (
               <div className="mb-6">
-                <h4 className="text-sm font-medium text-gray-700 mb-2">Kryptonite</h4>
+                <h4 className="text-sm font-bold text-gray-700 mb-2">Looking For</h4>
                 <p className="text-sm text-gray-600 whitespace-normal break-words">{profile.ask}</p>
               </div>
             )}
@@ -173,10 +180,25 @@ export default function ProfileDisplay({ profile, showLinkedIn = true, children 
           </div>
         </div>
 
-        {/* Superpower */}
+        {/* About */}
+        {profile.summary && (
+          <div className="mb-4">
+            <h4 className="text-sm font-bold text-gray-700 mb-1">About</h4>
+            <div className="relative">
+              <p className="text-sm text-gray-600 line-clamp-3 overflow-hidden break-words">
+                {profile.summary}
+              </p>
+              {profile.summary.length > 180 && (
+                <div className="absolute bottom-0 right-0 bg-gradient-to-l from-white via-white to-transparent w-12 h-full"></div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Can Help With */}
         {profile.superpower && (
           <div className="mb-4">
-            <h4 className="text-sm font-medium text-gray-700 mb-1">Superpower</h4>
+            <h4 className="text-sm font-bold text-gray-700 mb-1">Can Help With</h4>
             <div className="relative">
               <p className="text-sm text-gray-600 line-clamp-3 overflow-hidden break-words">
                 {profile.superpower}
@@ -188,10 +210,10 @@ export default function ProfileDisplay({ profile, showLinkedIn = true, children 
           </div>
         )}
 
-        {/* Ask */}
+        {/* Looking For */}
         {profile.ask && (
           <div className="mb-4">
-            <h4 className="text-sm font-medium text-gray-700 mb-1">Kryptonite</h4>
+            <h4 className="text-sm font-bold text-gray-700 mb-1">Looking For</h4>
             <div className="relative">
               <p className="text-sm text-gray-600 line-clamp-3 overflow-hidden break-words">
                 {profile.ask}

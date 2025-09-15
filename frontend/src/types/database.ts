@@ -2,6 +2,7 @@ export interface Profile {
   id: string
   display_name: string | null
   title: string | null
+  summary: string | null
   superpower: string | null
   ask: string | null
   linkedin: string | null
