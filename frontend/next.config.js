@@ -22,10 +22,6 @@ const nextConfig = {
       },
     ],
   },
-  // Disable edge runtime to avoid compatibility issues with Supabase
-  experimental: {
-    runtime: 'nodejs',
-  }
 }
 
 module.exports = nextConfig
