@@ -4,15 +4,19 @@ import Link from 'next/link'
 import { useState, useEffect } from 'react'
 import type { Profile } from '@/types/database'
 import SafeImage from './SafeImage'
+import { createClient } from '@/lib/supabase/client'
 
 interface ProfileDisplayProps {
   profile: Profile
   showLinkedIn?: boolean
   children?: React.ReactNode
+  isEditable?: boolean // New prop to indicate if the profile image is editable
 }
 
-export default function ProfileDisplay({ profile, showLinkedIn = true, children }: ProfileDisplayProps) {
+export default function ProfileDisplay({ profile, showLinkedIn = true, children, isEditable = false }: ProfileDisplayProps) {
   const [expanded, setExpanded] = useState(false)
+  const supabase = createClient()
+  const [uploading, setUploading] = useState(false)
   
   // Prevent scrolling when modal is open
   useEffect(() => {
@@ -40,6 +44,51 @@ export default function ProfileDisplay({ profile, showLinkedIn = true, children 
       window.removeEventListener('keydown', handleEsc)
     }
   }, [])
+
+  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (!event.target.files || event.target.files.length === 0) {
+      alert('You must select an image to upload.')
+      return
+    }
+
+    setUploading(true)
+    const file = event.target.files[0]
+    const fileExt = file.name.split('.').pop()
+    const fileName = `${profile.id}.${fileExt}`
+    const filePath = `profile_images/${fileName}`
+
+    try {
+      const { error: uploadError } = await supabase.storage
+        .from('avatars') // Assuming 'avatars' is your storage bucket
+        .upload(filePath, file, { upsert: true })
+
+      if (uploadError) {
+        throw uploadError
+      }
+
+      const publicUrl = supabase.storage
+        .from('avatars')
+        .getPublicUrl(filePath).data.publicUrl
+
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({ profile_image: publicUrl })
+        .eq('id', profile.id)
+
+      if (updateError) {
+        throw updateError
+      }
+
+      // Optionally, refresh the page or update local state to show the new image
+      // For now, let's assume the profile prop will be updated from parent or a refresh
+      alert('Profile image updated successfully!')
+    } catch (error: any) {
+      console.error('Error uploading image:', error)
+      alert(`Error: ${error.message}`)
+    } finally {
+      setUploading(false)
+    }
+  }
   
   return (
     <div className="relative">
@@ -69,22 +118,46 @@ export default function ProfileDisplay({ profile, showLinkedIn = true, children 
             
             <div className="flex items-start space-x-4 mb-6">
               {/* Profile Image */}
-              <div className="flex-shrink-0">
-                {profile.profile_image ? (
-                  <SafeImage
-                    src={profile.profile_image}
-                    alt={profile.display_name || 'Profile'}
-                    width={80}
-                    height={80}
-                    className="w-20 h-20 rounded-full object-cover border-2 border-gray-200"
+              <div className="flex-shrink-0 relative group">
+                {isEditable && (
+                  <input
+                    type="file"
+                    id="avatar-upload"
+                    accept="image/*"
+                    onChange={handleImageUpload}
+                    disabled={uploading}
+                    className="hidden"
                   />
-                ) : (
-                  <div className="w-20 h-20 rounded-full bg-gray-200 flex items-center justify-center border-2 border-gray-200">
-                    <svg className="w-10 h-10 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
-                    </svg>
-                  </div>
                 )}
+                <label htmlFor="avatar-upload" className={`cursor-pointer block ${isEditable ? '' : 'pointer-events-none'}`}>
+                  {uploading ? (
+                    <div className="w-20 h-20 rounded-full bg-gray-200 flex items-center justify-center border-2 border-gray-200 animate-pulse">
+                      <svg className="animate-spin h-8 w-8 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                    </div>
+                  ) : profile.profile_image ? (
+                    <SafeImage
+                      src={profile.profile_image}
+                      alt={profile.display_name || 'Profile'}
+                      width={80}
+                      height={80}
+                      className="w-20 h-20 rounded-full object-cover border-2 border-gray-200"
+                    />
+                  ) : (
+                    <div className="w-20 h-20 rounded-full bg-gray-200 flex items-center justify-center border-2 border-gray-200">
+                      <svg className="w-10 h-10 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
+                      </svg>
+                    </div>
+                  )}
+                  {isEditable && !uploading && (
+                    <div className="absolute inset-0 w-20 h-20 rounded-full bg-black bg-opacity-50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                      <span className="text-white text-xs text-center">Change Photo</span>
+                    </div>
+                  )}
+                </label>
               </div>
               
               {/* Profile Info */}
@@ -92,7 +165,7 @@ export default function ProfileDisplay({ profile, showLinkedIn = true, children 
                 <h3 className="text-xl font-semibold text-gray-900 mb-1">
                   {profile.display_name || 'Anonymous'}
                 </h3>
-                <p className="text-base text-gray-600 mb-3">
+                <p className="text-base text-gray-700 mb-3">
                   {profile.title || 'No title provided'}
                 </p>
               </div>
@@ -100,24 +173,24 @@ export default function ProfileDisplay({ profile, showLinkedIn = true, children 
             {/* About */}
             {profile.summary && (
               <div className="mb-6">
-                <h4 className="text-sm font-bold text-gray-700 mb-2">About</h4>
-                <p className="text-sm text-gray-600 whitespace-normal break-words">{profile.summary}</p>
+                <h4 className="text-sm font-bold text-gray-800 mb-2">About</h4>
+                <p className="text-sm text-gray-700 whitespace-normal break-words">{profile.summary}</p>
               </div>
             )}
             
             {/* Can Help With */}
             {profile.superpower && (
               <div className="mb-6">
-                <h4 className="text-sm font-bold text-gray-700 mb-2">Can Help With</h4>
-                <p className="text-sm text-gray-600 whitespace-normal break-words">{profile.superpower}</p>
+                <h4 className="text-sm font-bold text-gray-800 mb-2">Can Help With</h4>
+                <p className="text-sm text-gray-700 whitespace-normal break-words">{profile.superpower}</p>
               </div>
             )}
             
             {/* Looking For */}
             {profile.ask && (
               <div className="mb-6">
-                <h4 className="text-sm font-bold text-gray-700 mb-2">Looking For</h4>
-                <p className="text-sm text-gray-600 whitespace-normal break-words">{profile.ask}</p>
+                <h4 className="text-sm font-bold text-gray-800 mb-2">Looking For</h4>
+                <p className="text-sm text-gray-700 whitespace-normal break-words">{profile.ask}</p>
               </div>
             )}
             
@@ -151,22 +224,46 @@ export default function ProfileDisplay({ profile, showLinkedIn = true, children 
       <div className="bg-white rounded-lg p-6 border border-gray-200 shadow-md hover:shadow-lg transition-all duration-300 flex flex-col relative overflow-hidden" style={{ wordWrap: 'break-word', overflowWrap: 'break-word' }}>
         <div className="flex items-start space-x-4 mb-4">
           {/* Profile Image */}
-          <div className="flex-shrink-0">
-            {profile.profile_image ? (
-              <SafeImage
-                src={profile.profile_image}
-                alt={profile.display_name || 'Profile'}
-                width={64}
-                height={64}
-                className="w-16 h-16 rounded-full object-cover border-2 border-gray-200"
+          <div className="flex-shrink-0 relative group">
+            {isEditable && (
+              <input
+                type="file"
+                id="avatar-upload-small"
+                accept="image/*"
+                onChange={handleImageUpload}
+                disabled={uploading}
+                className="hidden"
               />
-            ) : (
-              <div className="w-16 h-16 rounded-full bg-gray-200 flex items-center justify-center border-2 border-gray-200">
-                <svg className="w-8 h-8 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
-                </svg>
-              </div>
             )}
+            <label htmlFor="avatar-upload-small" className={`cursor-pointer block ${isEditable ? '' : 'pointer-events-none'}`}>
+              {uploading ? (
+                <div className="w-16 h-16 rounded-full bg-gray-200 flex items-center justify-center border-2 border-gray-200 animate-pulse">
+                  <svg className="animate-spin h-6 w-6 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                </div>
+              ) : profile.profile_image ? (
+                <SafeImage
+                  src={profile.profile_image}
+                  alt={profile.display_name || 'Profile'}
+                  width={64}
+                  height={64}
+                  className="w-16 h-16 rounded-full object-cover border-2 border-gray-200"
+                />
+              ) : (
+                <div className="w-16 h-16 rounded-full bg-gray-200 flex items-center justify-center border-2 border-gray-200">
+                  <svg className="w-8 h-8 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
+                  </svg>
+                </div>
+              )}
+              {isEditable && !uploading && (
+                <div className="absolute inset-0 w-16 h-16 rounded-full bg-black bg-opacity-50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                  <span className="text-white text-xs text-center">Change Photo</span>
+                </div>
+              )}
+            </label>
           </div>
 
           {/* Profile Info */}
@@ -174,7 +271,7 @@ export default function ProfileDisplay({ profile, showLinkedIn = true, children 
             <h3 className="text-lg font-semibold text-gray-900 mb-1 truncate">
               {profile.display_name || 'Anonymous'}
             </h3>
-            <p className="text-sm text-gray-600 mb-3">
+            <p className="text-sm text-gray-700 mb-3">
               {profile.title || 'No title provided'}
             </p>
           </div>
@@ -183,9 +280,9 @@ export default function ProfileDisplay({ profile, showLinkedIn = true, children 
         {/* About */}
         {profile.summary && (
           <div className="mb-4">
-            <h4 className="text-sm font-bold text-gray-700 mb-1">About</h4>
+            <h4 className="text-sm font-bold text-gray-800 mb-1">About</h4>
             <div className="relative">
-              <p className="text-sm text-gray-600 line-clamp-3 overflow-hidden break-words">
+              <p className="text-sm text-gray-700 line-clamp-3 overflow-hidden break-words">
                 {profile.summary}
               </p>
               {profile.summary.length > 180 && (
@@ -198,9 +295,9 @@ export default function ProfileDisplay({ profile, showLinkedIn = true, children 
         {/* Can Help With */}
         {profile.superpower && (
           <div className="mb-4">
-            <h4 className="text-sm font-bold text-gray-700 mb-1">Can Help With</h4>
+            <h4 className="text-sm font-bold text-gray-800 mb-1">Can Help With</h4>
             <div className="relative">
-              <p className="text-sm text-gray-600 line-clamp-3 overflow-hidden break-words">
+              <p className="text-sm text-gray-700 line-clamp-3 overflow-hidden break-words">
                 {profile.superpower}
               </p>
               {profile.superpower.length > 180 && (
@@ -213,9 +310,9 @@ export default function ProfileDisplay({ profile, showLinkedIn = true, children 
         {/* Looking For */}
         {profile.ask && (
           <div className="mb-4">
-            <h4 className="text-sm font-bold text-gray-700 mb-1">Looking For</h4>
+            <h4 className="text-sm font-bold text-gray-800 mb-1">Looking For</h4>
             <div className="relative">
-              <p className="text-sm text-gray-600 line-clamp-3 overflow-hidden break-words">
+              <p className="text-sm text-gray-700 line-clamp-3 overflow-hidden break-words">
                 {profile.ask}
               </p>
               {profile.ask.length > 180 && (

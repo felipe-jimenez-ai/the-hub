@@ -2,7 +2,7 @@ export interface Profile {
   id: string
   display_name: string | null
   title: string | null
-  summary: string | null
+  summary?: string | null
   superpower: string | null
   ask: string | null
   linkedin: string | null
@@ -27,7 +27,7 @@ export interface Database {
     Tables: {
       profiles: {
         Row: Profile
-        Insert: Omit<Profile, 'created_at' | 'updated_at'>
+        Insert: Omit<Profile, 'created_at' | 'updated_at' | 'summary'>
         Update: Partial<Omit<Profile, 'id' | 'created_at' | 'updated_at'>>
       }
       connections: {

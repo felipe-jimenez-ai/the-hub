@@ -10,9 +10,10 @@ interface ProfileCardProps {
   profile: Profile
   onConnectionSaved?: () => void
   isRemembered?: boolean
+  isEditable?: boolean // Added isEditable prop
 }
 
-export default function ProfileCard({ profile, onConnectionSaved, isRemembered = false }: ProfileCardProps) {
+export default function ProfileCard({ profile, onConnectionSaved, isRemembered = false, isEditable = false }: ProfileCardProps) {
   const { user } = useAuth()
   const supabase = createClient()
   const [saving, setSaving] = useState(false)
@@ -61,17 +62,18 @@ export default function ProfileCard({ profile, onConnectionSaved, isRemembered =
   }
 
   return (
-    <ProfileDisplay profile={profile}>
+    <ProfileDisplay profile={profile} isEditable={isEditable}>
       <button
         onClick={handleRemember}
+        className={`px-4 py-2 rounded-md transition duration-200
+          ${saved
+            ? 'bg-green-500 text-white cursor-not-allowed'
+            : 'bg-blue-600 text-white hover:bg-blue-700'
+          }
+        `}
         disabled={saving || saved}
-        className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-          saved
-            ? 'bg-green-100 text-green-800 cursor-default'
-            : 'bg-blue-600 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50'
-        }`}
       >
-        {saving ? 'Saving...' : saved ? 'Remembered ✓' : 'Remember'}
+        {saving ? 'Saving...' : saved ? 'Connected ✓' : 'Connect'}
       </button>
     </ProfileDisplay>
   )
