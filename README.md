@@ -1,4 +1,4 @@
-<h1 align="center">👥 The Hub</h1>
+<h1 align="center">👥 Achievers Hub</h1>
 
 <p align="center">
   <strong>From strangers to structured connections — networking that works.
@@ -23,17 +23,20 @@ It is a surgical tool designed to solve the information asymmetry of "Day 1."
 
 ## The Solution (The MVP Scope)
 
-The Hub is a simple, mobile-responsive web application designed to be the official "first step" of any cohort-based event. It executes three functions perfectly.
+Achievers Hub is a simple, mobile-responsive web application designed to be the official "first step" of any cohort-based event. It includes the following features:
 
-*   **⚡️ Effortless Profile Setup:** Users create a minimal profile with their name, photo, title, a "Superpower" (what they offer), and a "Kryptonite" (what they need help with).
-*   **🔍 Instant, Filterable Directory:** A clean, fast, and scannable grid of all participant profiles.
-*   **🔑 Universal Keyword Search:** A single, prominent search bar that queries all profile fields to instantly find the right person.
+*   **🔐 Access Code Requirement:** Signup requires a valid access code for event security.
+*   **👤 Comprehensive Profile Creation:** Users create profiles with display name, title, superpower, kryptonite, LinkedIn, and profile image.
+*   **📇 Searchable Member Directory:** A clean, scannable grid of all participant profiles (not filterable).
+*   **❤️ My Circle:** Saved connections with personal notes for meaningful networking.
+*   **🎯 Meet Opt-in Toggle:** Users can opt-in to be available for meetings.
+*   **🔍 Real-time Search:** Instant search across all profile fields to find the right connections.
 
 https://github.com/user-attachments/assets/09034405-b212-4ad0-9c3a-01485d0e9ab8
 
 ## Project Structure
 
-The project is organized as a modular monolith within a monorepo, separating frontend and backend concerns into dedicated directories for clarity and maintainability.
+The project is organized with a focus on the frontend application.
 
 ```
 the-hub/
@@ -50,59 +53,20 @@ the-hub/
 │   ├── postcss.config.mjs # PostCSS configuration for frontend
 │   └── tsconfig.json     # Frontend TypeScript configuration
 │
-├── backend/              # All Python FastAPI backend code and configuration
-│   ├── Dockerfile
-│   ├── requirements.txt
-│   └── src/
-│       ├── auth/         # Authentication and authorization module
-│       │   ├── api/
-│       │   ├── models/
-│       │   ├── services/
-│       │   └── utils/
-│       ├── connections/  # User connections management module
-│       │   ├── api/
-│       │   ├── models/
-│       │   ├── services/
-│       │   └── utils/
-│       ├── main.py       # Main FastAPI application entry point
-│       ├── profiles/     # User profiles management module
-│       │   ├── api/
-│       │   ├── models/
-│       │   ├── services/
-│       │   └── utils/
-│       ├── search/       # Search functionality module
-│       │   ├── api/
-│       │   ├── models/
-│       │   ├── services/
-│       │   └── utils/
-│       └── users/        # User management module
-│           ├── api/
-│           ├── models/
-│           ├── services/
-│           └── utils/
-│
 ├── .gitignore            # Monorepo-level ignore rules
-├── docker-compose.yml    # Defines both frontend and backend services
-├── database-schema.sql   # Database schema (for initial setup)
 ├── README.md             # Project README
 └── .env.local            # Environment variables (sensitive data)
 ```
 
 ## Tech Stack
 
-This project utilizes a modern and robust technology stack for both frontend and backend:
+This project utilizes a modern technology stack:
 
 *   **Frontend:**
     *   **Framework:** [Next.js](https://nextjs.org/)
     *   **Styling:** [Tailwind CSS](https://tailwindcss.com/)
     *   **Language:** [TypeScript](https://www.typescriptlang.org/)
-*   **Backend:**
-    *   **Authentication & Database:** [Supabase](https://supabase.com/) (PostgreSQL + Auth)
-    *   **Language:** [Python](https://www.python.org/)
-    *   **API Framework:** [FastAPI](https://fastapi.tiangolo.com/)
-    *   **Data Layer:** [SQLModel](https://sqlmodel.tiangolo.com/) (Pydantic + SQLAlchemy)
-    *   **Database Migrations:** [Alembic](https://alembic.sqlalchemy.org/)
-    *   **Containerization:** [Docker](https://www.docker.com/) and [Docker Compose](https://docs.docker.com/compose/)
+*   **Authentication & Database:** [Supabase](https://supabase.com/) (PostgreSQL + Auth)
 
 ## Getting Started
 
@@ -153,9 +117,22 @@ Open [http://localhost:3000](http://localhost:3000) in your browser to see the a
 
 The application is currently configured to use Supabase for authentication and data storage, so no additional backend setup is required for the frontend to function.
 
+## Usage
+
+Users interact with Achievers Hub through the following flow:
+
+1. **Landing Page:** Visit the application to get an overview and enter an access code.
+2. **Access Code Entry:** Provide a valid access code to proceed with signup.
+3. **Authentication:** Sign up or log in using Supabase authentication.
+4. **Profile Setup:** Create a comprehensive profile including display name, title, superpower, kryptonite, LinkedIn, and profile image.
+5. **Browsing Members:** View the searchable member directory to explore participant profiles.
+6. **Searching:** Use real-time search across all profile fields to find specific connections.
+7. **Saving Connections:** Add members to "My Circle" with personal notes for future reference.
+8. **Managing My Circle:** Organize and manage saved connections, including toggling meet availability.
+
 ## Current Deployment Status
 
-The frontend application is currently deployed and accessible at: **https://achievers-az.vercel.app/**
+The live application is currently deployed and accessible at: **https://achievers-az.vercel.app/**
 
 ## Deployment to Vercel (Frontend Only)
 
