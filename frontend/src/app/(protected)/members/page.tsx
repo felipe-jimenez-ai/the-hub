@@ -36,11 +36,12 @@ function MembersPage() { // <--- NO 'export' keyword here
   }, [supabase])
 
   const loadUserProfile = useCallback(async () => {
+    if (!user?.id) return
     try {
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
-        .eq('id', user?.id)
+        .eq('id', user.id)
         .single()
 
       if (error && error.code !== 'PGRST116') throw error
